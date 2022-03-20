@@ -20,11 +20,11 @@ type SignUpType = {
 
 function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    // name: "",
-    // email: "",
-    // password: "",
-  } as SignUpType);
+  const [formData, setFormData] = useState<SignUpType>({
+    name: "",
+    email: "",
+    password: "",
+  } );
   const { name, email, password } = formData;
 
   const navigate = useNavigate();
