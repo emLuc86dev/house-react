@@ -33,6 +33,7 @@ const Profile = () => {
         await updateProfile(auth.currentUser!, {
           displayName: name,
         });
+        toast('Successfully updated')
       }
 
       //Update in firestore
@@ -40,7 +41,7 @@ const Profile = () => {
       await updateDoc(userRef, {
         name,
       });
-      toast('Successfully updated')
+      
     } catch (error) {
       toast.error(
         "Ups, Something went wrong! Could not update profile details "
