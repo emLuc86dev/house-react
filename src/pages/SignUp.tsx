@@ -53,6 +53,7 @@ function SignUp() {
         updateProfile(auth.currentUser, {
           displayName: name,
         });
+        toast.success(`User ${name} successsfully added`)
       }
 
       const formDataCopy = { ...formData };
