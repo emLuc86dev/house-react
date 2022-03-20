@@ -26,16 +26,20 @@ const SignIn = () => {
     e.preventDefault();
     try {
       const auth = getAuth();
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
-      const user = userCredential.user
-      if(user) {
-        navigate('/')
+      const user = userCredential.user;
+      if (user) {
+        navigate("/");
+        toast("Successfully logged");
       }
-
     } catch (error) {
       toast.error("Bad User Credantials", {
-        autoClose: 2000
+        autoClose: 2000,
       });
     }
   };
