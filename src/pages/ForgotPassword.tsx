@@ -38,7 +38,7 @@ const ForgotPassword = () => {
             value={email}
             onChange={onChange}
           />
-          <Link className="forgotPasswordLink" to="/sing-in">
+          <Link className="forgotPasswordLink" to="/sign-in">
             Sing In
           </Link>
           <div className="signInBar">

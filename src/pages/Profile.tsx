@@ -45,6 +45,7 @@ const Profile = () => {
     } catch (error) {
       toast.error(
         "Ups, Something went wrong! Could not update profile details "
+        
       );
     }
   };
