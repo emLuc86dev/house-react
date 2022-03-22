@@ -8,16 +8,36 @@ import {
   uploadBytesResumable,
   getDownloadURL,
 } from "firebase/storage";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
+import { db } from "../firebase.config";
 
 type MutateType = React.ChangeEvent<HTMLInputElement>;
+
+type formatDataType = {
+  type: string;
+  name: string;
+  bedrooms: number;
+  bathrooms: number;
+  parking: boolean;
+  furnished: boolean;
+  address?: string;
+  offer: boolean;
+  regularPrice: number;
+  discountedPrice?: number;
+  imageUrls: [];
+  images?: [];
+  latitude: number;
+  longitude: number;
+  userRef: string;
+};
 
 const CreateListing = () => {
   const [geolocationEnabled, setGeolocationEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<formatDataType>({
     type: "rent",
     name: "",
     bedrooms: 1,
@@ -28,6 +48,7 @@ const CreateListing = () => {
     offer: false,
     regularPrice: 0,
     discountedPrice: 0,
+    imageUrls: [],
     images: [],
     latitude: 0,
     longitude: 0,
@@ -46,6 +67,7 @@ const CreateListing = () => {
     regularPrice,
     discountedPrice,
     images,
+    imageUrls,
     latitude,
     longitude,
     userRef,
@@ -185,17 +207,30 @@ const CreateListing = () => {
       });
     };
 
-    const imageUrl = await Promise.all(
-      [...images].map((image) => storeImage(image))
+    const imgUrlData = await Promise.all(
+      [...images!].map((image) => storeImage(image))
     ).catch(() => {
       setLoading(false);
       toast.error("Images not uploaded");
       return;
     });
 
-    console.log(imageUrl);
+    const formDataCopy = {
+      ...formData,
+      imageUrls: imgUrlData,
+      timestamp: serverTimestamp(),
+    };
+
+    delete formDataCopy.address;
+    delete formDataCopy.images;
+    !formDataCopy.offer && delete formDataCopy.discountedPrice;
+
+    const docRef = await addDoc(collection(db, "listings"), formDataCopy);
+    console.log("From docRef", docRef);
 
     setLoading(false);
+    toast.success('Listing saved')
+    navigate(`/category`)
   };
 
   return (
