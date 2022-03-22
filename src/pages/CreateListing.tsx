@@ -1,7 +1,16 @@
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Spinner } from "../layout/Spinner";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+
+import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-toastify";
 
 type MutateType = React.ChangeEvent<HTMLInputElement>;
 
@@ -19,7 +28,7 @@ const CreateListing = () => {
     offer: false,
     regularPrice: 0,
     discountedPrice: 0,
-    images: {},
+    images: [],
     latitude: 0,
     longitude: 0,
     userRef: "",
@@ -95,7 +104,6 @@ const CreateListing = () => {
       ...prevState,
       [e.target.id]: e.target.value,
     }));
-    console.log("printing from TextArea ", address);
   };
 
   const hendleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -130,11 +138,65 @@ const CreateListing = () => {
     return <Spinner />;
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  };
 
-  const onClick = () => {};
+    //Store images in firebase
+    const storeImage = async (image: any) => {
+      return new Promise((resolve, reject) => {
+        const storage = getStorage();
+        const fileName = `${auth.currentUser?.uid}-${image.name}-${uuidv4()}`;
+
+        const storageRef = ref(storage, "iamges/" + fileName.toString());
+        const uploadTask = uploadBytesResumable(storageRef, image);
+
+        // Register three observers:
+        // 1. 'state_changed' observer, called any time the state changes
+        // 2. Error observer, called on failure
+        // 3. Completion observer, called on successful completion
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            // Observe state change events such as progress, pause, and resume
+            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log("Upload is " + progress + "% done");
+            switch (snapshot.state) {
+              case "paused":
+                console.log("Upload is paused");
+                break;
+              case "running":
+                console.log("Upload is running");
+                break;
+            }
+          },
+          (error) => {
+            reject(error);
+          },
+          () => {
+            // Handle successful uploads on complete
+            // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              resolve(downloadURL);
+            });
+          }
+        );
+      });
+    };
+
+    const imageUrl = await Promise.all(
+      [...images].map((image) => storeImage(image))
+    ).catch(() => {
+      setLoading(false);
+      toast.error("Images not uploaded");
+      return;
+    });
+
+    console.log(imageUrl);
+
+    setLoading(false);
+  };
 
   return (
     <div className="profile">
